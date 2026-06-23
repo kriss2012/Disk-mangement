@@ -38,3 +38,11 @@ Disk-Management/
 │
 └── README.md
 ```
+Disk-Management/
+│
+├── Main.java
+├── DiskManager.java
+├── StorageAnalyzer.java
+├── FileScanner.java
+├── DiskCleanup.java
+└── README.md
