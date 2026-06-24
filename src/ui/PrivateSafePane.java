@@ -1,6 +1,5 @@
 package ui;
 
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -19,13 +18,18 @@ import services.SecureSafeService;
 public class PrivateSafePane extends StackPane {
     private boolean locked = true;
 
-    // Locked UI elements
-    private final VBox lockedView = new VBox(20);
-    private final Button unlockBtn = new Button("Unlock Private Safe");
-    private final Label lockedStatus = new Label("Secure Safe Locked");
-    private final ProgressIndicator authProgress = new ProgressIndicator();
+    // 1. Setup View Elements
+    private final VBox setupView = new VBox(15);
+    private final PasswordField newPassField = new PasswordField();
+    private final PasswordField confirmPassField = new PasswordField();
+    private final Label setupErrorLabel = new Label();
 
-    // Unlocked UI elements
+    // 2. Login/Unlock View Elements
+    private final VBox loginView = new VBox(15);
+    private final PasswordField loginPassField = new PasswordField();
+    private final Label loginErrorLabel = new Label();
+
+    // 3. Unlocked View Elements
     private final VBox unlockedView = new VBox(15);
     private final TableView<SafeItem> tableView = new TableView<>();
     private final Label unlockedStatus = new Label("Safe unlocked.");
@@ -34,55 +38,99 @@ public class PrivateSafePane extends StackPane {
     private final Button extractBtn = new Button("🔓 Decrypt & Extract...");
     private final Button restoreBtn = new Button("↩ Restore to Original Path");
     private final Button lockBtn = new Button("🔒 Lock Safe");
+    private final Button changePassBtn = new Button("🔑 Change Password");
+    private final Button resetBtn = new Button("🗑 Reset Safe / Wipe");
 
     public PrivateSafePane() {
         this.setStyle("-fx-background-color: transparent;");
         this.setPadding(new Insets(25));
 
-        // Setup both views
-        setupLockedView();
-        setupUnlockedView();
+        // Create the three view containers
+        createSetupView();
+        createLoginView();
+        createUnlockedView();
 
-        // Add both to StackPane and toggle initial state
-        this.getChildren().addAll(lockedView, unlockedView);
-        toggleViewState();
+        // Add all to StackPane
+        this.getChildren().addAll(setupView, loginView, unlockedView);
+        showActiveState();
     }
 
-    private void setupLockedView() {
-        lockedView.setAlignment(Pos.CENTER);
-        lockedView.setPadding(new Insets(40));
+    private void createSetupView() {
+        setupView.setAlignment(Pos.CENTER);
+        setupView.setPadding(new Insets(45));
+        setupView.setMaxWidth(480);
+        setupView.getStyleClass().add("glass-card");
 
-        Label lockIcon = new Label("🔒");
-        lockIcon.setFont(Font.font(72));
+        Label badge = new Label("🔒");
+        badge.setFont(Font.font(64));
 
-        Label header = new Label("Private Security Safe");
+        Label header = new Label("Set Up Private Safe");
         header.setFont(Font.font("Outfit", FontWeight.BOLD, 22));
         header.getStyleClass().add("text-primary");
 
         Label desc = new Label(
-            "Protect your sensitive documents with enterprise-grade AES-256 encryption.\n" +
-            "Access requires authentication via Windows Hello (Fingerprint, Face, PIN) or your Windows credentials."
+            "Configure a custom master password for your safe.\n" +
+            "This password will be securely encrypted under your Windows logon profile using enterprise-grade DPAPI."
         );
-        desc.setFont(Font.font("Outfit", 13));
+        desc.setFont(Font.font("Outfit", 12));
         desc.getStyleClass().add("text-secondary");
         desc.setAlignment(Pos.CENTER);
         desc.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
-        lockedStatus.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
-        lockedStatus.getStyleClass().add("text-secondary");
+        newPassField.setPromptText("Enter Master Password");
+        newPassField.getStyleClass().add("text-field");
+        newPassField.setMaxWidth(300);
 
-        unlockBtn.setFont(Font.font("Outfit", FontWeight.BOLD, 15));
-        unlockBtn.getStyleClass().add("btn-primary");
-        unlockBtn.setPadding(new Insets(12, 30, 12, 30));
-        unlockBtn.setOnAction(e -> triggerUnlockAuthentication());
+        confirmPassField.setPromptText("Confirm Master Password");
+        confirmPassField.getStyleClass().add("text-field");
+        confirmPassField.setMaxWidth(300);
 
-        authProgress.setVisible(false);
-        authProgress.setMaxSize(30, 30);
+        setupErrorLabel.setFont(Font.font("Outfit", 12));
+        setupErrorLabel.setTextFill(Color.web("#ff3b30"));
 
-        lockedView.getChildren().addAll(lockIcon, header, desc, unlockBtn, authProgress, lockedStatus);
+        Button createBtn = new Button("Configure Safe");
+        createBtn.getStyleClass().add("btn-primary");
+        createBtn.setPadding(new Insets(10, 24, 10, 24));
+        createBtn.setOnAction(e -> handleSetupPassword());
+
+        setupView.getChildren().addAll(badge, header, desc, newPassField, confirmPassField, setupErrorLabel, createBtn);
     }
 
-    private void setupUnlockedView() {
+    private void createLoginView() {
+        loginView.setAlignment(Pos.CENTER);
+        loginView.setPadding(new Insets(45));
+        loginView.setMaxWidth(440);
+        loginView.getStyleClass().add("glass-card");
+
+        Label badge = new Label("🛡️");
+        badge.setFont(Font.font(64));
+
+        Label header = new Label("Unlock Private Safe");
+        header.setFont(Font.font("Outfit", FontWeight.BOLD, 22));
+        header.getStyleClass().add("text-primary");
+
+        Label desc = new Label("Please enter your custom Safe password to view your protected files.");
+        desc.setFont(Font.font("Outfit", 13));
+        desc.getStyleClass().add("text-secondary");
+        desc.setAlignment(Pos.CENTER);
+
+        loginPassField.setPromptText("Enter Safe Password");
+        loginPassField.getStyleClass().add("text-field");
+        loginPassField.setMaxWidth(300);
+        loginPassField.setOnAction(e -> handleUnlockSafe());
+
+        loginErrorLabel.setFont(Font.font("Outfit", 12));
+        loginErrorLabel.setTextFill(Color.web("#ff3b30"));
+
+        Button unlockBtn = new Button("Unlock Vault");
+        unlockBtn.getStyleClass().add("btn-primary");
+        unlockBtn.setPadding(new Insets(10, 24, 10, 24));
+        unlockBtn.setOnAction(e -> handleUnlockSafe());
+
+        loginView.getChildren().addAll(badge, header, desc, loginPassField, loginErrorLabel, unlockBtn);
+    }
+
+    private void createUnlockedView() {
         unlockedView.setAlignment(Pos.CENTER);
 
         // Header Row
@@ -119,13 +167,33 @@ public class PrivateSafePane extends StackPane {
         restoreBtn.setDisable(true);
         restoreBtn.setOnAction(e -> onRestoreSelected());
 
+        changePassBtn.setStyle(
+            "-fx-background-color: #5856d6;" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 8px;" +
+            "-fx-padding: 8px 16px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-cursor: hand;"
+        );
+        changePassBtn.setOnAction(e -> onChangePassword());
+
+        resetBtn.setStyle(
+            "-fx-background-color: #ff3b30;" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 8px;" +
+            "-fx-padding: 8px 16px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-cursor: hand;"
+        );
+        resetBtn.setOnAction(e -> onResetSafe());
+
         unlockedStatus.setFont(Font.font("Outfit", 13));
         unlockedStatus.getStyleClass().add("text-secondary");
 
         Region toolbarSpacer = new Region();
         HBox.setHgrow(toolbarSpacer, Priority.ALWAYS);
 
-        toolbar.getChildren().addAll(addFileBtn, extractBtn, restoreBtn, toolbarSpacer, unlockedStatus);
+        toolbar.getChildren().addAll(addFileBtn, extractBtn, restoreBtn, changePassBtn, resetBtn, toolbarSpacer, unlockedStatus);
 
         unlockedView.getChildren().addAll(headerRow, tableView, toolbar);
         VBox.setVgrow(tableView, Priority.ALWAYS);
@@ -134,15 +202,15 @@ public class PrivateSafePane extends StackPane {
     private void setupTableView() {
         TableColumn<SafeItem, String> nameCol = new TableColumn<>("Encrypted File Name");
         nameCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getName()));
-        nameCol.setPrefWidth(250);
+        nameCol.setPrefWidth(220);
 
         TableColumn<SafeItem, String> sizeCol = new TableColumn<>("Size");
         sizeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(DiskManager.formatSize(data.getValue().getSizeBytes())));
-        sizeCol.setPrefWidth(120);
+        sizeCol.setPrefWidth(100);
 
         TableColumn<SafeItem, String> pathCol = new TableColumn<>("Original Path Reference");
         pathCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getOriginalPath()));
-        pathCol.setPrefWidth(350);
+        pathCol.setPrefWidth(380);
 
         tableView.getColumns().addAll(nameCol, sizeCol, pathCol);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -154,50 +222,63 @@ public class PrivateSafePane extends StackPane {
         });
     }
 
-    private void toggleViewState() {
-        lockedView.setVisible(locked);
-        lockedView.setManaged(locked);
-        unlockedView.setVisible(!locked);
-        unlockedView.setManaged(!locked);
+    private void showActiveState() {
+        boolean initialized = SecureSafeService.isSafeInitialized();
+        
+        setupView.setVisible(!initialized);
+        setupView.setManaged(!initialized);
+        
+        loginView.setVisible(initialized && locked);
+        loginView.setManaged(initialized && locked);
+        
+        unlockedView.setVisible(initialized && !locked);
+        unlockedView.setManaged(initialized && !locked);
 
-        if (!locked) {
+        if (initialized && !locked) {
             refreshSafeList();
         }
     }
 
-    private void triggerUnlockAuthentication() {
-        unlockBtn.setDisable(true);
-        authProgress.setVisible(true);
-        lockedStatus.setText("Waiting for Windows Hello / PIN verification...");
+    private void handleSetupPassword() {
+        String p1 = newPassField.getText().trim();
+        String p2 = confirmPassField.getText().trim();
 
-        Task<Boolean> authTask = new Task<>() {
-            @Override
-            protected Boolean call() throws Exception {
-                return SecureSafeService.unlockSafe();
-            }
-        };
+        if (p1.isEmpty()) {
+            setupErrorLabel.setText("Password cannot be empty.");
+            return;
+        }
+        if (!p1.equals(p2)) {
+            setupErrorLabel.setText("Passwords do not match.");
+            return;
+        }
 
-        authTask.setOnSucceeded(e -> {
-            boolean success = authTask.getValue();
-            unlockBtn.setDisable(false);
-            authProgress.setVisible(false);
+        try {
+            SecureSafeService.initializeSafe(p1);
+            newPassField.clear();
+            confirmPassField.clear();
+            setupErrorLabel.setText("");
+            locked = false;
+            showActiveState();
+        } catch (Exception ex) {
+            setupErrorLabel.setText("Failed to initialize safe:\n" + ex.getMessage());
+        }
+    }
 
-            if (success) {
-                locked = false;
-                toggleViewState();
-                unlockedStatus.setText("Safe unlocked.");
-            } else {
-                lockedStatus.setText("Access Denied. Windows Hello verification failed.");
-            }
-        });
+    private void handleUnlockSafe() {
+        String pass = loginPassField.getText().trim();
+        if (pass.isEmpty()) {
+            loginErrorLabel.setText("Please enter your password.");
+            return;
+        }
 
-        authTask.setOnFailed(e -> {
-            unlockBtn.setDisable(false);
-            authProgress.setVisible(false);
-            lockedStatus.setText("Error during Windows Hello request.");
-        });
-
-        new Thread(authTask).start();
+        if (SecureSafeService.verifySafePassword(pass)) {
+            loginPassField.clear();
+            loginErrorLabel.setText("");
+            locked = false;
+            showActiveState();
+        } else {
+            loginErrorLabel.setText("Incorrect password. Access denied.");
+        }
     }
 
     private void refreshSafeList() {
@@ -258,6 +339,79 @@ public class PrivateSafePane extends StackPane {
         }
     }
 
+    private void onChangePassword() {
+        // Change password dialog
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Change Safe Password");
+        dialog.setHeaderText("Update your Private Safe master credentials.");
+
+        ButtonType changeButtonType = new ButtonType("Change Password", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(changeButtonType, ButtonType.CANCEL);
+
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(15));
+
+        PasswordField oldPass = new PasswordField();
+        oldPass.setPromptText("Current Safe Password");
+        PasswordField newPass = new PasswordField();
+        newPass.setPromptText("New Master Password");
+        PasswordField confirmNew = new PasswordField();
+        confirmNew.setPromptText("Confirm New Master Password");
+
+        content.getChildren().addAll(new Label("Current Password:"), oldPass, new Label("New Password:"), newPass, confirmNew);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.showAndWait().ifPresent(response -> {
+            if (response == changeButtonType) {
+                String cur = oldPass.getText().trim();
+                String n1 = newPass.getText().trim();
+                String n2 = confirmNew.getText().trim();
+
+                if (cur.isEmpty() || n1.isEmpty()) {
+                    showError("Input Error", "Passwords cannot be empty.");
+                    return;
+                }
+                if (!n1.equals(n2)) {
+                    showError("Input Error", "New passwords do not match.");
+                    return;
+                }
+
+                try {
+                    SecureSafeService.changeSafePassword(cur, n1);
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Password Changed");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Private Safe master password updated successfully.");
+                    alert.showAndWait();
+                } catch (Exception ex) {
+                    showError("Credential Error", "Failed to update password:\n" + ex.getMessage());
+                }
+            }
+        });
+    }
+
+    private void onResetSafe() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Vault Wipe");
+        confirm.setHeaderText("Wipe Private Safe and Reset Password?");
+        confirm.setContentText(
+            "WARNING: This action will PERMANENTLY erase all encrypted data in the safe and remove the password. " +
+            "This operation is irreversible."
+        );
+
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            SecureSafeService.resetSafe();
+            locked = true;
+            showActiveState();
+            showInfo("Vault Wiped", "The private safe has been completely wiped and reset.");
+        }
+    }
+
+    public void lockSafe() {
+        this.locked = true;
+        showActiveState();
+    }
+
     private void showError(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -266,9 +420,11 @@ public class PrivateSafePane extends StackPane {
         alert.showAndWait();
     }
 
-    public void lockSafe() {
-        this.locked = true;
-        toggleViewState();
-        this.lockedStatus.setText("Safe locked.");
+    private void showInfo(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
