@@ -15,8 +15,10 @@ public class DashboardPane extends VBox {
     private final DiskManager diskManager = new DiskManager();
     private final FlowPane cardsContainer = new FlowPane();
     private final Button refreshBtn = new Button("Refresh");
+    private final MainWindow mainWindow;
 
-    public DashboardPane() {
+    public DashboardPane(MainWindow mainWindow) {
+        this.mainWindow = mainWindow;
         this.setSpacing(20);
         this.setPadding(new Insets(25));
         this.setStyle("-fx-background-color: transparent;");
@@ -81,6 +83,7 @@ public class DashboardPane extends VBox {
         card.setPrefWidth(260);
         card.setPadding(new Insets(20));
         card.getStyleClass().add("glass-card");
+        card.setCursor(javafx.scene.Cursor.HAND);
 
         // Hover scale transforms
         card.setOnMouseEntered(e -> {
@@ -88,6 +91,13 @@ public class DashboardPane extends VBox {
         });
         card.setOnMouseExited(e -> {
             card.setStyle("-fx-scale-x: 1.0; -fx-scale-y: 1.0;");
+        });
+
+        // Click redirection
+        card.setOnMouseClicked(e -> {
+            if (mainWindow != null) {
+                mainWindow.showFileManagerAndOpenPath(drive.getPath());
+            }
         });
 
         // Drive Letter/Path
