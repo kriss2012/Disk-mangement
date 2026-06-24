@@ -3,3 +3,4 @@ out/
 .idea/
 *.log
 *.tmp
+javafx-sdk-21.0.2/
