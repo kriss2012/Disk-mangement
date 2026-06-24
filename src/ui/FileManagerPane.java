@@ -181,7 +181,7 @@ public class FileManagerPane extends VBox {
                 tableView.getItems().add(new FileRow(file));
             }
         }
-        statusLabel.setText("Loaded: " + files.length + " items");
+        statusLabel.setText("Loaded: " + (files != null ? files.length : 0) + " items");
     }
 
     private void navigateTo(String path) {

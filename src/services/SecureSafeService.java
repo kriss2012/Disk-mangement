@@ -165,8 +165,9 @@ public class SecureSafeService {
     }
 
     private static String protectKeyWithDPAPI(String base64Key) throws Exception {
-        // Enclose the base64 key in quotes and run .NET Protect API
+        // Explicitly load System.Security assembly to make ProtectedData available in PowerShell sessions
         String script = String.format(
+            "Add-Type -AssemblyName System.Security; " +
             "[System.Convert]::ToBase64String([System.Security.Cryptography.ProtectedData]::Protect([System.Convert]::FromBase64String('%s'), $null, 'CurrentUser'))",
             base64Key
         );
@@ -174,8 +175,9 @@ public class SecureSafeService {
     }
 
     private static String unprotectKeyWithDPAPI(String protectedBase64Key) throws Exception {
-        // Enclose the protected key in quotes and run .NET Unprotect API
+        // Explicitly load System.Security assembly to make ProtectedData available in PowerShell sessions
         String script = String.format(
+            "Add-Type -AssemblyName System.Security; " +
             "[System.Convert]::ToBase64String([System.Security.Cryptography.ProtectedData]::Unprotect([System.Convert]::FromBase64String('%s'), $null, 'CurrentUser'))",
             protectedBase64Key
         );
@@ -190,12 +192,26 @@ public class SecureSafeService {
             "-Command", scriptCommand
         );
         Process process = pb.start();
+        
+        // Capture standard output
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = reader.readLine();
-        process.waitFor();
-        if (line != null) {
+        
+        // Capture standard error for diagnostic info
+        BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+        StringBuilder errorMsg = new StringBuilder();
+        String errLine;
+        while ((errLine = errReader.readLine()) != null) {
+            errorMsg.append(errLine).append("\n");
+        }
+        
+        int exitCode = process.waitFor();
+        if (exitCode == 0 && line != null) {
             return line.trim();
         }
-        throw new IOException("DPAPI key protection failed via PowerShell.");
+        
+        String details = errorMsg.toString().trim();
+        throw new IOException("DPAPI key protection failed via PowerShell. Exit code: " + exitCode + 
+                             (details.isEmpty() ? "" : "\nDetails: " + details));
     }
 }
