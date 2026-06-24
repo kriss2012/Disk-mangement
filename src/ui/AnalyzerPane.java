@@ -27,7 +27,7 @@ public class AnalyzerPane extends StackPane {
     private final VBox topExtsList = new VBox(8);
 
     public AnalyzerPane() {
-        this.setStyle("-fx-background-color: #1e1e24;");
+        this.setStyle("-fx-background-color: transparent;");
         this.setPadding(new Insets(25));
 
         // Setup Placeholder
