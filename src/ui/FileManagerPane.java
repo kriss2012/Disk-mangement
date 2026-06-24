@@ -165,7 +165,7 @@ public class FileManagerPane extends VBox {
         });
     }
 
-    private void loadDirectory(File dir) {
+    public void loadDirectory(File dir) {
         if (dir == null || !dir.exists() || !dir.isDirectory()) {
             statusLabel.setText("Invalid directory path.");
             return;
