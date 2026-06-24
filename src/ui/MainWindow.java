@@ -25,6 +25,8 @@ public class MainWindow extends Application {
     private ScannerPane scannerPane;
     private AnalyzerPane analyzerPane;
     private CleanupPane cleanupPane;
+    private FileManagerPane fileManagerPane;
+    private PrivateSafePane privateSafePane;
     private SystemInfoPane systemInfoPane;
     private PreferencesPane preferencesPane;
 
@@ -47,6 +49,8 @@ public class MainWindow extends Application {
         scannerPane = new ScannerPane();
         analyzerPane = new AnalyzerPane();
         cleanupPane = new CleanupPane();
+        fileManagerPane = new FileManagerPane();
+        privateSafePane = new PrivateSafePane();
         systemInfoPane = new SystemInfoPane();
         preferencesPane = new PreferencesPane(this);
 
@@ -65,7 +69,7 @@ public class MainWindow extends Application {
         // Apply theme on load
         applyLiveTheme();
 
-        Scene scene = new Scene(mainLayout, 1020, 680);
+        Scene scene = new Scene(mainLayout, 1080, 720);
         
         // Link CSS stylesheet
         try {
@@ -127,18 +131,22 @@ public class MainWindow extends Application {
         searchField.getStyleClass().add("text-field");
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterSidebar(newVal));
 
-        // Sidebar Items (Fixed Emojis using safe UTF-16 characters without variation selectors)
+        // Sidebar Items
         menuItemsContainer = new VBox(4);
         
         Button dashBtn = createMenuButton("\uD83D\uDDA5  Dashboard", () -> showPane(dashboardPane));
         Button scanBtn = createMenuButton("\uD83D\uDD0D  Folder Scanner", () -> showPane(scannerPane));
         Button analyzeBtn = createMenuButton("\uD83D\uDCC8  Storage Analyzer", () -> showPane(analyzerPane));
         Button cleanBtn = createMenuButton("\uD83D\uDDD1  Junk Cleanup", () -> showPane(cleanupPane));
+        Button fileManagerBtn = createMenuButton("\uD83D\uDCC1  File Manager", () -> showPane(fileManagerPane));
+        Button privateSafeBtn = createMenuButton("\uD83D\uDD12  Private Safe", () -> showPane(privateSafePane));
         Button sysInfoBtn = createMenuButton("\uD83D\uDCBB  System Info", () -> showPane(systemInfoPane));
         Button prefBtn = createMenuButton("\u2699  Preferences", () -> showPane(preferencesPane));
 
         menuItemsContainer.getChildren().addAll(
             dashBtn, scanBtn, analyzeBtn, cleanBtn, 
+            new Separator(javafx.geometry.Orientation.HORIZONTAL),
+            fileManagerBtn, privateSafeBtn,
             new Separator(javafx.geometry.Orientation.HORIZONTAL),
             sysInfoBtn, prefBtn
         );
