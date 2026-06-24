@@ -18,7 +18,7 @@ public class DashboardPane extends VBox {
     public DashboardPane() {
         this.setSpacing(20);
         this.setPadding(new Insets(25));
-        this.setStyle("-fx-background-color: #1e1e24;");
+        this.setStyle("-fx-background-color: transparent;");
 
         // Header Layout
         HBox header = new HBox();
@@ -63,14 +63,14 @@ public class DashboardPane extends VBox {
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setContent(cardsContainer);
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background: #1e1e24; -fx-border-color: #1e1e24;");
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         cardsContainer.setHgap(20);
         cardsContainer.setVgap(20);
         cardsContainer.setPadding(new Insets(10, 0, 10, 0));
-        cardsContainer.setStyle("-fx-background-color: #1e1e24;");
+        cardsContainer.setStyle("-fx-background-color: transparent;");
 
         this.getChildren().addAll(header, scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
