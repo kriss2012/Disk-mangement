@@ -24,12 +24,41 @@ try {
 try {
     $cred = $host.ui.PromptForCredential(
         "Private Safe Verification", 
-        "Please authenticate using your Windows password or PIN to unlock your secure private safe.", 
+        "Please enter your Windows password or PIN to unlock your secure private safe.", 
         "$env:USERNAME", 
         ""
     )
     if ($cred) {
-        Write-Output "SUCCESS"
+        # Load DirectoryServices.AccountManagement to securely authenticate credentials
+        Add-Type -AssemblyName System.DirectoryServices.AccountManagement
+        
+        $username = $cred.UserName
+        # Strip domain/computer prefixes if present (e.g. COMPUTER\user -> user)
+        if ($username.Contains("\")) {
+            $username = $username.Split("\")[1]
+        }
+        
+        $password = $cred.GetNetworkCredential().Password
+        
+        # Validate against Local Computer Accounts
+        $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Machine)
+        $verified = $pc.ValidateCredentials($username, $password)
+        
+        # If not verified and domain is active, check Domain controller
+        if (-not $verified) {
+            try {
+                $pcDomain = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Domain)
+                $verified = $pcDomain.ValidateCredentials($username, $password)
+            } catch {
+                # Ignore domain validation failures if offline
+            }
+        }
+        
+        if ($verified) {
+            Write-Output "SUCCESS"
+        } else {
+            Write-Output "FAILED"
+        }
     } else {
         Write-Output "FAILED"
     }
