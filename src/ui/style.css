@@ -1,0 +1,123 @@
+/* macOS Dark Theme styling for Disk Utility Pro */
+
+.root {
+    -fx-font-family: "Outfit", "Segoe UI", "SF Pro Text", sans-serif;
+}
+
+/* ScrollPane Styling */
+.scroll-pane {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Sleek ScrollBar Styling */
+.scroll-pane .scroll-bar:vertical,
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8px;
+    -fx-pref-height: 8px;
+}
+.scroll-pane .scroll-bar .thumb {
+    -fx-background-color: #4a4a4c;
+    -fx-background-radius: 4px;
+}
+.scroll-pane .scroll-bar .thumb:hover {
+    -fx-background-color: #606063;
+}
+.scroll-pane .scroll-bar .track,
+.scroll-pane .scroll-bar .decrement-button,
+.scroll-pane .scroll-bar .increment-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* TableView Custom Styling */
+.table-view {
+    -fx-background-color: #272730;
+    -fx-background-radius: 8px;
+    -fx-border-color: #3a3a3c;
+    -fx-border-radius: 8px;
+    -fx-padding: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+.table-view .column-header-background {
+    -fx-background-color: #323236;
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-border-color: transparent transparent #3a3a3c transparent;
+}
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent #3a3a3c transparent transparent;
+    -fx-size: 36px;
+}
+.table-view .column-header .label {
+    -fx-text-fill: #a0a0a5;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+.table-view .table-row-cell {
+    -fx-background-color: #272730;
+    -fx-text-fill: white;
+    -fx-border-color: transparent transparent #3a3a3c transparent;
+    -fx-cell-size: 38px;
+}
+.table-view .table-row-cell:filled:hover {
+    -fx-background-color: #31313c;
+}
+.table-view .table-row-cell:filled:selected {
+    -fx-background-color: #007aff;
+    -fx-text-fill: white;
+}
+.table-view .table-cell {
+    -fx-text-fill: white;
+}
+
+/* ProgressBar Custom Styling */
+.progress-bar {
+    -fx-background-color: transparent;
+}
+.progress-bar .track {
+    -fx-background-color: #1e1e24;
+    -fx-background-radius: 6px;
+}
+.progress-bar .bar {
+    -fx-background-radius: 6px;
+}
+
+/* CheckBox Styling */
+.check-box .box {
+    -fx-background-color: #1e1e24;
+    -fx-border-color: #55555a;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+.check-box:selected .box {
+    -fx-background-color: #007aff;
+    -fx-border-color: #007aff;
+}
+.check-box:selected .mark {
+    -fx-background-color: white;
+    -fx-shape: "M 0 4 L 3 7 L 10 0 L 10 2 L 3 9 L 0 6 Z";
+}
+
+/* TextField Styling */
+.text-field {
+    -fx-prompt-text-fill: #666666;
+    -fx-highlight-fill: #007aff;
+}
+.text-field:focused {
+    -fx-border-color: #007aff;
+    -fx-border-width: 1px;
+}
+
+/* Separator Line Styling */
+.separator .line {
+    -fx-border-color: #323236 transparent transparent transparent;
+}
