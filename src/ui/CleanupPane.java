@@ -29,7 +29,7 @@ public class CleanupPane extends VBox {
     public CleanupPane() {
         this.setSpacing(15);
         this.setPadding(new Insets(25));
-        this.setStyle("-fx-background-color: #1e1e24;");
+        this.setStyle("-fx-background-color: transparent;");
 
         // Title Row
         HBox header = new HBox();
@@ -86,13 +86,13 @@ public class CleanupPane extends VBox {
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setContent(itemsContainer);
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background: #1e1e24; -fx-border-color: #3a3a3c; -fx-border-radius: 8px; -fx-background-radius: 8px;");
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         itemsContainer.setPadding(new Insets(15));
         itemsContainer.setSpacing(10);
-        itemsContainer.setStyle("-fx-background-color: #1e1e24;");
+        itemsContainer.setStyle("-fx-background-color: transparent;");
 
         // Footer Row
         HBox footer = new HBox();
