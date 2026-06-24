@@ -11,7 +11,10 @@ public class MainWindow extends Application {
     public void start(Stage stage) {
         TabPane tabPane = new TabPane();
 
-        Tab dashTab = new Tab("Dashboard", new Label("Dashboard coming soon"));
+        // Real Dashboard tab
+        DashboardPane dashboardPane = new DashboardPane();
+        Tab dashTab = new Tab("Dashboard", dashboardPane);
+        
         Tab scanTab = new Tab("Scanner", new Label("Scanner coming soon"));
         Tab analyzeTab = new Tab("Analyzer", new Label("Analyzer coming soon"));
         Tab cleanTab = new Tab("Cleanup", new Label("Cleanup coming soon"));
