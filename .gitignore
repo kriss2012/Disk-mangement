@@ -1,0 +1,5 @@
+*.class
+out/
+.idea/
+*.log
+*.tmp
