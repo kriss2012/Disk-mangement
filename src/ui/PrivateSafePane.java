@@ -97,11 +97,7 @@ public class PrivateSafePane extends StackPane {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         lockBtn.getStyleClass().add("btn-danger");
-        lockBtn.setOnAction(e -> {
-            locked = true;
-            toggleViewState();
-            lockedStatus.setText("Safe locked.");
-        });
+        lockBtn.setOnAction(e -> lockSafe());
 
         headerRow.getChildren().addAll(title, spacer, lockBtn);
 
@@ -268,5 +264,11 @@ public class PrivateSafePane extends StackPane {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    public void lockSafe() {
+        this.locked = true;
+        toggleViewState();
+        this.lockedStatus.setText("Safe locked.");
     }
 }
