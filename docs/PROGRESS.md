@@ -29,28 +29,34 @@ Track every coding session here. 5 minutes of logging saves 2 hours of confusion
 
 ## Session Log
 
-## 2025-XX-XX (Day 1)
+## 2026-06-24 (Day 2)
 
 ### Done
-- Reviewed existing code: main.java, DiskManager.java, StorageAnalizer.java, Filesanner.java, Diskcleanup.java
-- Set up docs/ folder structure
-- Created PRD.md, ARCHITECTURE.md, module docs
+- Resolved class naming inconsistencies (typos like `Filesanner` -> `FileScanner`, `StorageAnalizer` -> `StorageAnalyzer`).
+- Structured code into `src/model/`, `src/services/`, and `src/ui/` packages to enforce clean separation of concerns and resolve package import limitations.
+- Created `DriveInfo`, `FileEntry`, and `CleanupItem` model classes under `src/model/`.
+- Implemented and console-tested `DiskManager`, `FileScanner`, `StorageAnalyzer`, and `DiskCleanup` services under `src/services/`.
+- Configured local JavaFX 21 SDK dependency to make the workspace self-contained and run-ready.
+- Developed all GUI Panes (`DashboardPane`, `ScannerPane`, `AnalyzerPane`, `CleanupPane`) with premium dark styling, responsive card grids, hover transforms, background concurrency threads, and safety check dialogs.
+- Integrated and launched the final desktop JavaFX client successfully.
 
 ### Broke / Fixed
-- Noticed: class names in repo don't match README (e.g. `StorageAnalizer` not `StorageAnalyzer`)
-  Fix: Rename to correct spelling in next session
+- **Issue**: Classes inside named packages (like `ui`) cannot import from the default package in Java.
+- **Fix**: Moved services from root of `src/` to `src/services/` package, updating all import headers.
 
 ### Blocked
-- JavaFX setup not done yet. Need to install JavaFX SDK.
+- None.
 
 ### Committed
-- `docs: add PRD, ARCHITECTURE, and module documents`
-
-### Tomorrow
-- [ ] Fix class naming inconsistencies (typos in repo)
-- [ ] Refactor existing code into model/ and service/ package structure
-- [ ] Create DriveInfo.java data class
-- [ ] Test DiskManager console output on your machine
+- `refactor: fix class naming and file casing`
+- `chore: add .gitignore and untrack compiled classes`
+- `feat: add DriveInfo, FileEntry, CleanupItem data classes`
+- `feat: implement all 4 service classes with console tests`
+- `chore: ignore javafx-sdk directory`
+- `feat: JavaFX window with 4 tab placeholders`
+- `feat: dashboard tab with real drive data and progress bars`
+- `feat: scanner and analyzer tabs with background scanning and type breakdown`
+- `feat: cleanup tab with junk detection and confirmed deletion`
 
 ---
 
@@ -58,12 +64,13 @@ Track every coding session here. 5 minutes of logging saves 2 hours of confusion
 
 | Phase | What | Files | Status |
 |-------|------|-------|--------|
-| 0 | Fix naming + folder structure | All existing .java | ⬜ Todo |
-| 1 | Data models | DriveInfo.java, FileEntry.java, CleanupItem.java | ⬜ Todo |
-| 2 | Console-test all services | DiskManager, FileScanner, StorageAnalyzer, DiskCleanup | ⬜ Todo |
-| 3 | JavaFX setup | Main.java, MainWindow.java | ⬜ Todo |
-| 4 | Dashboard UI | DashboardPane.java | ⬜ Todo |
-| 5 | Scanner UI | ScannerPane.java | ⬜ Todo |
-| 6 | Analyzer UI | AnalyzerPane.java | ⬜ Todo |
-| 7 | Cleanup UI | CleanupPane.java | ⬜ Todo |
-| 8 | Polish + testing | All | ⬜ Todo |
+| 0 | Fix naming + folder structure | All existing .java | ✅ Done |
+| 1 | Data models | DriveInfo.java, FileEntry.java, CleanupItem.java | ✅ Done |
+| 2 | Console-test all services | DiskManager, FileScanner, StorageAnalyzer, DiskCleanup | ✅ Done |
+| 3 | JavaFX setup | Main.java, MainWindow.java | ✅ Done |
+| 4 | Dashboard UI | DashboardPane.java | ✅ Done |
+| 5 | Scanner UI | ScannerPane.java | ✅ Done |
+| 6 | Analyzer UI | AnalyzerPane.java | ✅ Done |
+| 7 | Cleanup UI | CleanupPane.java | ✅ Done |
+| 8 | Polish + testing | All | ✅ Done |
+
