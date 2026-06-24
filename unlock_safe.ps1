@@ -22,35 +22,67 @@ try {
 
 # Fallback dialog using standard Windows account verification
 try {
+    # Explicitly specify "Password (not PIN)" in the message to guide the user
     $cred = $host.ui.PromptForCredential(
         "Private Safe Verification", 
-        "Please enter your Windows password or PIN to unlock your secure private safe.", 
+        "Please enter your Windows Account Password (not PIN) to unlock your secure private safe.", 
         "$env:USERNAME", 
         ""
     )
     if ($cred) {
-        # Load DirectoryServices.AccountManagement to securely authenticate credentials
-        Add-Type -AssemblyName System.DirectoryServices.AccountManagement
-        
         $username = $cred.UserName
-        # Strip domain/computer prefixes if present (e.g. COMPUTER\user -> user)
-        if ($username.Contains("\")) {
-            $username = $username.Split("\")[1]
-        }
-        
         $password = $cred.GetNetworkCredential().Password
         
-        # Validate against Local Computer Accounts
-        $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Machine)
-        $verified = $pc.ValidateCredentials($username, $password)
+        $domain = "."
+        # Strip domain or computer prefixes if present (e.g. COMPUTER\user -> user)
+        if ($username.Contains("\")) {
+            $parts = $username.Split("\")
+            $domain = $parts[0]
+            $username = $parts[1]
+        }
         
-        # If not verified and domain is active, check Domain controller
+        $verified = $false
+        
+        # Method 1: Native Win32 LogonUser API (Highest reliability for local and Microsoft accounts)
+        try {
+            $signature = @'
+            [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+            public static extern bool LogonUser(
+                string lpszUsername,
+                string lpszDomain,
+                string lpszPassword,
+                int dwLogonType,
+                int dwLogonProvider,
+                out IntPtr phToken
+            );
+'@
+            # Add type dynamically. If type already exists in session, catch the error and reuse it.
+            $win32Type = [Win32.Win32Logon]
+            if (-not $win32Type) {
+                $win32Type = Add-Type -MemberDefinition $signature -Name "Win32Logon" -Namespace "Win32" -PassThru
+            }
+            
+            $token = [IntPtr]::Zero
+            # LogonType 3 = Network Logon (works without needing interactive logon rights)
+            $verified = $win32Type::LogonUser($username, $domain, $password, 3, 0, [ref]$token)
+        } catch {
+            # Fallback to Method 2 if Win32 invocation fails
+        }
+        
+        # Method 2: PrincipalContext DirectoryServices API
         if (-not $verified) {
             try {
-                $pcDomain = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Domain)
-                $verified = $pcDomain.ValidateCredentials($username, $password)
+                Add-Type -AssemblyName System.DirectoryServices.AccountManagement
+                $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Machine)
+                $verified = $pc.ValidateCredentials($username, $password)
             } catch {
-                # Ignore domain validation failures if offline
+                # Try domain context
+                try {
+                    $pcDomain = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Domain)
+                    $verified = $pcDomain.ValidateCredentials($username, $password)
+                } catch {
+                    # Ignore
+                }
             }
         }
         
