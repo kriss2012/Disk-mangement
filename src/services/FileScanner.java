@@ -44,9 +44,10 @@ public class FileScanner {
         // Sort by sizeBytes descending
         entries.sort((a, b) -> Long.compare(b.getSizeBytes(), a.getSizeBytes()));
 
-        // Limit results to 500 to avoid UI lag and memory issues on large drives
-        if (entries.size() > 500) {
-            return new ArrayList<>(entries.subList(0, 500));
+        // Limit results using configured limit to avoid UI lag and memory issues on large drives
+        int limit = AppConfig.getScanLimit();
+        if (entries.size() > limit) {
+            return new ArrayList<>(entries.subList(0, limit));
         }
         return entries;
     }

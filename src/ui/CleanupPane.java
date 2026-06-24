@@ -297,18 +297,22 @@ public class CleanupPane extends VBox {
 
         if (selectedItems.isEmpty()) return;
 
-        // Show Confirmation Dialog
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirm Deletion");
-        confirm.setHeaderText("Delete Junk Files?");
-        confirm.setContentText(String.format("You are about to delete %d items (~%s). This cannot be undone. Are you sure you want to proceed?", 
-                selectedItems.size(), DiskManager.formatSize(totalBytes)));
-        
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                executeDeletion(selectedItems);
-            }
-        });
+        if (services.AppConfig.isConfirmDelete()) {
+            // Show Confirmation Dialog
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirm Deletion");
+            confirm.setHeaderText("Delete Junk Files?");
+            confirm.setContentText(String.format("You are about to delete %d items (~%s). This cannot be undone. Are you sure you want to proceed?", 
+                    selectedItems.size(), DiskManager.formatSize(totalBytes)));
+            
+            confirm.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    executeDeletion(selectedItems);
+                }
+            });
+        } else {
+            executeDeletion(selectedItems);
+        }
     }
 
     private void executeDeletion(List<CleanupItem> targets) {
