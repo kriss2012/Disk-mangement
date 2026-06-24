@@ -26,7 +26,9 @@ public class MainWindow extends Application {
         // Link Scanner to Analyzer for data handoff
         scannerPane.setAnalyzerPane(analyzerPane);
 
-        Tab cleanTab = new Tab("Cleanup", new Label("Cleanup coming soon"));
+        // Real Cleanup tab
+        CleanupPane cleanupPane = new CleanupPane();
+        Tab cleanTab = new Tab("Cleanup", cleanupPane);
 
         tabPane.getTabs().addAll(dashTab, scanTab, analyzeTab, cleanTab);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
