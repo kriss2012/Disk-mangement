@@ -28,18 +28,14 @@ public class PreferencesPane extends VBox {
         // Title
         Label title = new Label("Preferences");
         title.setFont(Font.font("Outfit", FontWeight.BOLD, 26));
-        title.setTextFill(Color.WHITE);
+        title.getStyleClass().add("text-primary");
 
         // Grid container
         GridPane grid = new GridPane();
         grid.setHgap(20);
         grid.setVgap(20);
         grid.setPadding(new Insets(20));
-        grid.setStyle(
-            "-fx-background-color: #272730;" +
-            "-fx-background-radius: 12px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);"
-        );
+        grid.getStyleClass().add("glass-card");
 
         // Column Constraints
         ColumnConstraints col1 = new ColumnConstraints();
@@ -51,30 +47,17 @@ public class PreferencesPane extends VBox {
         // 1. Default Directory
         Label dirLbl = new Label("Default Scan Path");
         dirLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 13));
-        dirLbl.setTextFill(Color.web("#a0a0a5"));
+        dirLbl.getStyleClass().add("text-secondary");
 
         HBox dirRow = new HBox(10);
         defaultDirField.setText(AppConfig.getDefaultScanDir());
         defaultDirField.setFont(Font.font("Outfit", 13));
-        defaultDirField.setStyle(
-            "-fx-background-color: #1e1e24;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 6px;" +
-            "-fx-padding: 8px 12px;" +
-            "-fx-border-color: #323236;" +
-            "-fx-border-radius: 6px;"
-        );
+        defaultDirField.getStyleClass().add("text-field");
         HBox.setHgrow(defaultDirField, Priority.ALWAYS);
 
         Button browseBtn = new Button("Browse...");
         browseBtn.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 13));
-        browseBtn.setStyle(
-            "-fx-background-color: #3a3a3c;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 6px;" +
-            "-fx-padding: 8px 14px;" +
-            "-fx-cursor: hand;"
-        );
+        browseBtn.getStyleClass().add("btn-secondary");
         browseBtn.setOnAction(e -> {
             DirectoryChooser chooser = new DirectoryChooser();
             chooser.setTitle("Select Default Folder");
@@ -95,42 +78,33 @@ public class PreferencesPane extends VBox {
         // 2. Scan limit
         Label limitLbl = new Label("Scan File Cap");
         limitLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 13));
-        limitLbl.setTextFill(Color.web("#a0a0a5"));
+        limitLbl.getStyleClass().add("text-secondary");
 
         scanLimitCombo.getItems().addAll(100, 200, 500, 1000, 5000);
         scanLimitCombo.setValue(AppConfig.getScanLimit());
-        scanLimitCombo.setStyle(
-            "-fx-background-color: #1e1e24;" +
-            "-fx-text-fill: white;" +
-            "-fx-mark-color: white;"
-        );
+        scanLimitCombo.setStyle("-fx-background-color: -color-control-bg; -fx-text-fill: -color-text-primary; -fx-mark-color: -color-text-primary;");
         grid.add(limitLbl, 0, 1);
         grid.add(scanLimitCombo, 1, 1);
 
         // 3. Theme selection
         Label themeLbl = new Label("Appearance Theme");
         themeLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 13));
-        themeLbl.setTextFill(Color.web("#a0a0a5"));
+        themeLbl.getStyleClass().add("text-secondary");
 
         themeCombo.getItems().addAll("macOS Dark", "macOS Light", "Cyberpunk");
         themeCombo.setValue(AppConfig.getTheme());
-        themeCombo.setStyle(
-            "-fx-background-color: #1e1e24;" +
-            "-fx-text-fill: white;" +
-            "-fx-mark-color: white;"
-        );
+        themeCombo.setStyle("-fx-background-color: -color-control-bg; -fx-text-fill: -color-text-primary; -fx-mark-color: -color-text-primary;");
         grid.add(themeLbl, 0, 2);
         grid.add(themeCombo, 1, 2);
 
         // 4. Safety Prompt checkbox
         Label safetyLbl = new Label("Safety Prompts");
         safetyLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 13));
-        safetyLbl.setTextFill(Color.web("#a0a0a5"));
+        safetyLbl.getStyleClass().add("text-secondary");
 
         confirmDeleteCheck.setSelected(AppConfig.isConfirmDelete());
         confirmDeleteCheck.setFont(Font.font("Outfit", 13));
-        confirmDeleteCheck.setTextFill(Color.WHITE);
-        confirmDeleteCheck.setStyle("-fx-cursor: hand;");
+        confirmDeleteCheck.getStyleClass().add("check-box");
         grid.add(safetyLbl, 0, 3);
         grid.add(confirmDeleteCheck, 1, 3);
 
@@ -141,13 +115,7 @@ public class PreferencesPane extends VBox {
 
         Button saveBtn = new Button("Apply & Save Settings");
         saveBtn.setFont(Font.font("Outfit", FontWeight.BOLD, 14));
-        saveBtn.setStyle(
-            "-fx-background-color: #007aff;" + // Accent Blue
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 8px;" +
-            "-fx-padding: 10px 20px;" +
-            "-fx-cursor: hand;"
-        );
+        saveBtn.getStyleClass().add("btn-primary");
         saveBtn.setOnAction(e -> onSaveClicked());
 
         btnRow.getChildren().add(saveBtn);

@@ -12,19 +12,21 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import model.CleanupItem;
-import services.DiskManager;
 import services.DiskCleanup;
+import services.DiskManager;
+import services.AppConfig;
 
 public class CleanupPane extends VBox {
     private final DiskCleanup diskCleanup = new DiskCleanup();
-    private final List<CleanupRow> rowList = new ArrayList<>();
+    private final List<CleanupItem> scanResults = new ArrayList<>();
 
-    private final Button scanBtn = new Button("Scan for Junk");
-    private final Button deleteBtn = new Button("Delete Selected");
+    private final Button scanBtn = new Button("Scan Junk Files");
+    private final Button deleteBtn = new Button("Clean Selected Junk");
     private final Label statusLabel = new Label("Ready");
     private final ProgressBar progressBar = new ProgressBar(0);
-    private final VBox itemsContainer = new VBox(10);
-    private final Label summaryLabel = new Label("Scan to find common system junk files.");
+    private final Label summaryLabel = new Label("Select items and click Clean.");
+
+    private final VBox itemsContainer = new VBox();
 
     public CleanupPane() {
         this.setSpacing(15);
@@ -38,33 +40,13 @@ public class CleanupPane extends VBox {
 
         Label title = new Label("Junk Cleanup");
         title.setFont(Font.font("Outfit", FontWeight.BOLD, 26));
-        title.setTextFill(Color.WHITE);
+        title.getStyleClass().add("text-primary");
 
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
 
         scanBtn.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
-        scanBtn.setStyle(
-            "-fx-background-color: #5856d6;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 8px;" +
-            "-fx-padding: 8px 16px;" +
-            "-fx-cursor: hand;"
-        );
-        scanBtn.setOnMouseEntered(e -> scanBtn.setStyle(
-            "-fx-background-color: #6e6cef;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 8px;" +
-            "-fx-padding: 8px 16px;" +
-            "-fx-cursor: hand;"
-        ));
-        scanBtn.setOnMouseExited(e -> scanBtn.setStyle(
-            "-fx-background-color: #5856d6;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 8px;" +
-            "-fx-padding: 8px 16px;" +
-            "-fx-cursor: hand;"
-        ));
+        scanBtn.getStyleClass().add("btn-primary");
         scanBtn.setOnAction(e -> onScanClicked());
 
         header.getChildren().addAll(title, headerSpacer, scanBtn);
@@ -74,11 +56,11 @@ public class CleanupPane extends VBox {
         statusRow.setAlignment(Pos.CENTER_LEFT);
         
         statusLabel.setFont(Font.font("Outfit", 14));
-        statusLabel.setTextFill(Color.web("#a0a0a5"));
+        statusLabel.getStyleClass().add("text-secondary");
         
         progressBar.setMaxWidth(200);
         progressBar.setVisible(false);
-        progressBar.setStyle("-fx-accent: #5856d6; -fx-control-inner-background: #272730; -fx-background-insets: 0;");
+        progressBar.setStyle("-fx-accent: #ff9500;");
 
         statusRow.getChildren().addAll(statusLabel, progressBar);
 
@@ -101,42 +83,14 @@ public class CleanupPane extends VBox {
         footer.setPadding(new Insets(10, 0, 0, 0));
 
         summaryLabel.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
-        summaryLabel.setTextFill(Color.WHITE);
+        summaryLabel.getStyleClass().add("text-primary");
 
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
 
         deleteBtn.setFont(Font.font("Outfit", FontWeight.BOLD, 14));
         deleteBtn.setDisable(true);
-        deleteBtn.setStyle(
-            "-fx-background-color: #ff3b30;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 8px;" +
-            "-fx-padding: 10px 20px;" +
-            "-fx-cursor: hand;"
-        );
-        deleteBtn.setOnMouseEntered(e -> {
-            if (!deleteBtn.isDisable()) {
-                deleteBtn.setStyle(
-                    "-fx-background-color: #ff5e55;" +
-                    "-fx-text-fill: white;" +
-                    "-fx-background-radius: 8px;" +
-                    "-fx-padding: 10px 20px;" +
-                    "-fx-cursor: hand;"
-                );
-            }
-        });
-        deleteBtn.setOnMouseExited(e -> {
-            if (!deleteBtn.isDisable()) {
-                deleteBtn.setStyle(
-                    "-fx-background-color: #ff3b30;" +
-                    "-fx-text-fill: white;" +
-                    "-fx-background-radius: 8px;" +
-                    "-fx-padding: 10px 20px;" +
-                    "-fx-cursor: hand;"
-                );
-            }
-        });
+        deleteBtn.getStyleClass().add("btn-danger");
         deleteBtn.setOnAction(e -> onDeleteClicked());
 
         footer.getChildren().addAll(summaryLabel, footerSpacer, deleteBtn);
@@ -148,76 +102,66 @@ public class CleanupPane extends VBox {
     private void onScanClicked() {
         scanBtn.setDisable(true);
         deleteBtn.setDisable(true);
+        itemsContainer.getChildren().clear();
+        scanResults.clear();
+
         progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
         progressBar.setVisible(true);
-        statusLabel.setText("Scanning for junk files...");
-        statusLabel.setTextFill(Color.web("#a0a0a5"));
+        statusLabel.setText("Scanning system for cache, logs, and temp files...");
 
-        itemsContainer.getChildren().clear();
-        rowList.clear();
-
-        Task<List<CleanupItem>> scanTask = new Task<>() {
+        Task<List<CleanupItem>> cleanupScanTask = new Task<>() {
             @Override
             protected List<CleanupItem> call() throws Exception {
                 return diskCleanup.findCleanupTargets();
             }
         };
 
-        scanTask.setOnSucceeded(e -> {
-            List<CleanupItem> results = scanTask.getValue();
+        cleanupScanTask.setOnSucceeded(e -> {
+            List<CleanupItem> results = cleanupScanTask.getValue();
+            scanResults.addAll(results);
+
             progressBar.setVisible(false);
             scanBtn.setDisable(false);
 
             if (results.isEmpty()) {
-                Label noJunk = new Label("Your system is clean! No common junk folders found.");
-                noJunk.setFont(Font.font("Outfit", 15));
-                noJunk.setTextFill(Color.web("#34c759"));
-                itemsContainer.getChildren().add(noJunk);
-                summaryLabel.setText("0 items found.");
-                statusLabel.setText("Scan completed.");
-                statusLabel.setTextFill(Color.web("#34c759"));
+                statusLabel.setText("System is clean! No junk files found.");
+                Label cleanMsg = new Label("🎉 System is optimized! Nothing to clean.");
+                cleanMsg.setFont(Font.font("Outfit", FontWeight.BOLD, 16));
+                cleanMsg.getStyleClass().add("text-primary");
+                itemsContainer.getChildren().add(cleanMsg);
+                updateSummary();
             } else {
+                statusLabel.setText("Junk scan complete.");
                 for (CleanupItem item : results) {
-                    HBox itemRow = createCleanupRow(item);
-                    itemsContainer.getChildren().add(itemRow);
+                    HBox row = createCleanupRow(item);
+                    itemsContainer.getChildren().add(row);
                 }
-                statusLabel.setText("Junk scan completed.");
-                statusLabel.setTextFill(Color.web("#34c759"));
+                deleteBtn.setDisable(false);
                 updateSummary();
             }
         });
 
-        scanTask.setOnFailed(e -> {
+        cleanupScanTask.setOnFailed(e -> {
             progressBar.setVisible(false);
             scanBtn.setDisable(false);
-            statusLabel.setText("Scan failed.");
-            statusLabel.setTextFill(Color.web("#ff3b30"));
-            showErrorAlert("Scan Error", "Could not scan for junk files:\n" + scanTask.getException().getMessage());
+            statusLabel.setText("Junk scan failed.");
+            
+            Throwable ex = cleanupScanTask.getException();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Scan Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Could not scan for junk files:\n" + ex.getMessage());
+            alert.showAndWait();
         });
 
-        new Thread(scanTask).start();
+        new Thread(cleanupScanTask).start();
     }
 
     private HBox createCleanupRow(CleanupItem item) {
         HBox row = new HBox(15);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(12, 15, 12, 15));
-        row.setStyle(
-            "-fx-background-color: #272730;" +
-            "-fx-background-radius: 8px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);"
-        );
-
-        row.setOnMouseEntered(e -> row.setStyle(
-            "-fx-background-color: #31313c;" +
-            "-fx-background-radius: 8px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 5, 0, 0, 2);"
-        ));
-        row.setOnMouseExited(e -> row.setStyle(
-            "-fx-background-color: #272730;" +
-            "-fx-background-radius: 8px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);"
-        ));
+        row.getStyleClass().add("glass-card");
 
         // CheckBox
         CheckBox cb = new CheckBox();
@@ -231,11 +175,11 @@ public class CleanupPane extends VBox {
 
         Label label = new Label(item.getLabel());
         label.setFont(Font.font("Outfit", FontWeight.BOLD, 15));
-        label.setTextFill(Color.WHITE);
+        label.getStyleClass().add("text-primary");
 
         Label pathLabel = new Label(item.getPath());
         pathLabel.setFont(Font.font("Outfit", 12));
-        pathLabel.setTextFill(Color.web("#a0a0a5"));
+        pathLabel.getStyleClass().add("text-secondary");
 
         labels.getChildren().addAll(label, pathLabel);
 
@@ -258,155 +202,120 @@ public class CleanupPane extends VBox {
             "-fx-padding: 3px 6px;"
         );
 
-        // Size
+        // Size Label
         Label sizeLabel = new Label(DiskManager.formatSize(item.getEstimatedBytes()));
         sizeLabel.setFont(Font.font("Outfit", FontWeight.BOLD, 14));
-        sizeLabel.setTextFill(Color.WHITE);
-        sizeLabel.setPrefWidth(90);
-        sizeLabel.setAlignment(Pos.CENTER_RIGHT);
+        sizeLabel.getStyleClass().add("text-primary");
 
         row.getChildren().addAll(cb, labels, badge, sizeLabel);
 
-        rowList.add(new CleanupRow(cb, item));
+        // Associate checkbox with the item using properties
+        row.getProperties().put("checkbox", cb);
+        row.getProperties().put("item", item);
+
         return row;
     }
 
     private void updateSummary() {
-        int count = 0;
-        long totalBytes = 0;
-        for (CleanupRow row : rowList) {
-            if (row.checkBox.isSelected()) {
-                count++;
-                totalBytes += row.item.getEstimatedBytes();
+        long totalBytesToClean = 0;
+        int selectedCount = 0;
+
+        for (javafx.scene.Node node : itemsContainer.getChildren()) {
+            if (node instanceof HBox) {
+                HBox row = (HBox) node;
+                CheckBox cb = (CheckBox) row.getProperties().get("checkbox");
+                CleanupItem item = (CleanupItem) row.getProperties().get("item");
+
+                if (cb != null && cb.isSelected() && item != null) {
+                    totalBytesToClean += item.getEstimatedBytes();
+                    selectedCount++;
+                }
             }
         }
 
-        summaryLabel.setText(String.format("%d items selected · ~%s recoverable", count, DiskManager.formatSize(totalBytes)));
-        deleteBtn.setDisable(count == 0);
+        if (selectedCount == 0) {
+            summaryLabel.setText("No items selected.");
+            deleteBtn.setDisable(true);
+        } else {
+            summaryLabel.setText(String.format("Selected %d items (%s to free)", selectedCount, DiskManager.formatSize(totalBytesToClean)));
+            deleteBtn.setDisable(false);
+        }
     }
 
     private void onDeleteClicked() {
-        List<CleanupItem> selectedItems = new ArrayList<>();
-        long totalBytes = 0;
-        for (CleanupRow row : rowList) {
-            if (row.checkBox.isSelected()) {
-                selectedItems.add(row.item);
-                totalBytes += row.item.getEstimatedBytes();
+        // Collect items to delete
+        List<CleanupItem> itemsToDelete = new ArrayList<>();
+        List<HBox> rowsToDelete = new ArrayList<>();
+
+        for (javafx.scene.Node node : itemsContainer.getChildren()) {
+            if (node instanceof HBox) {
+                HBox row = (HBox) node;
+                CheckBox cb = (CheckBox) row.getProperties().get("checkbox");
+                CleanupItem item = (CleanupItem) row.getProperties().get("item");
+
+                if (cb != null && cb.isSelected() && item != null) {
+                    itemsToDelete.add(item);
+                    rowsToDelete.add(row);
+                }
             }
         }
 
-        if (selectedItems.isEmpty()) return;
+        if (itemsToDelete.isEmpty()) return;
 
-        if (services.AppConfig.isConfirmDelete()) {
-            // Show Confirmation Dialog
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Confirm Deletion");
-            confirm.setHeaderText("Delete Junk Files?");
-            confirm.setContentText(String.format("You are about to delete %d items (~%s). This cannot be undone. Are you sure you want to proceed?", 
-                    selectedItems.size(), DiskManager.formatSize(totalBytes)));
+        // Respect config confirmation prompt
+        if (AppConfig.isConfirmDelete()) {
+            Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmAlert.setTitle("Confirm Deletion");
+            confirmAlert.setHeaderText("Are you sure you want to clean selected junk files?");
+            confirmAlert.setContentText("This will permanently delete " + itemsToDelete.size() + " categories of files from your drive.");
             
-            confirm.showAndWait().ifPresent(response -> {
-                if (response == ButtonType.OK) {
-                    executeDeletion(selectedItems);
-                }
-            });
-        } else {
-            executeDeletion(selectedItems);
+            if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+                return;
+            }
         }
-    }
 
-    private void executeDeletion(List<CleanupItem> targets) {
         scanBtn.setDisable(true);
         deleteBtn.setDisable(true);
         progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
         progressBar.setVisible(true);
-        statusLabel.setText("Deleting selected junk files...");
-        statusLabel.setTextFill(Color.web("#ff9500"));
+        statusLabel.setText("Permanently deleting selected files...");
 
-        Task<DeletionResult> deleteTask = new Task<>() {
+        Task<Void> deleteTask = new Task<>() {
             @Override
-            protected DeletionResult call() throws Exception {
-                long freedBytes = 0;
-                int filesCount = 0;
-                int failedCount = 0;
-
-                for (CleanupItem target : targets) {
-                    long sizeBefore = diskCleanup.calculateFolderSize(new File(target.getPath()));
-                    boolean success = diskCleanup.deleteItem(target);
-                    long sizeAfter = diskCleanup.calculateFolderSize(new File(target.getPath()));
-                    
-                    long freed = sizeBefore - sizeAfter;
-                    if (freed > 0) {
-                        freedBytes += freed;
-                    }
-                    if (!success) {
-                        failedCount++;
-                    }
+            protected Void call() throws Exception {
+                for (CleanupItem item : itemsToDelete) {
+                    diskCleanup.deleteItem(item);
                 }
-                return new DeletionResult(freedBytes, failedCount);
+                return null;
             }
         };
 
         deleteTask.setOnSucceeded(e -> {
-            DeletionResult result = deleteTask.getValue();
             progressBar.setVisible(false);
             scanBtn.setDisable(false);
+            statusLabel.setText("Deletion complete. Space reclaimed successfully.");
 
-            String statusMsg = String.format("Deletion complete. Freed: %s", DiskManager.formatSize(result.freedBytes));
-            if (result.failedCount > 0) {
-                statusMsg += String.format(" (%d folders had items skipped)", result.failedCount);
-            }
+            // Remove rows from UI
+            itemsContainer.getChildren().removeAll(rowsToDelete);
+            scanResults.removeAll(itemsToDelete);
 
-            statusLabel.setText(statusMsg);
-            statusLabel.setTextFill(Color.web("#34c759"));
-
-            Alert resultAlert = new Alert(Alert.AlertType.INFORMATION);
-            resultAlert.setTitle("Cleanup Complete");
-            resultAlert.setHeaderText(null);
-            resultAlert.setContentText(String.format("Successfully completed cleanup! Saved %s of storage space.", 
-                    DiskManager.formatSize(result.freedBytes)));
-            resultAlert.showAndWait();
-
-            // Refresh items list
-            onScanClicked();
+            updateSummary();
         });
 
         deleteTask.setOnFailed(e -> {
             progressBar.setVisible(false);
             scanBtn.setDisable(false);
+            deleteBtn.setDisable(false);
             statusLabel.setText("Deletion failed.");
-            statusLabel.setTextFill(Color.web("#ff3b30"));
-            showErrorAlert("Deletion Error", "Could not complete file deletion:\n" + deleteTask.getException().getMessage());
+
+            Throwable ex = deleteTask.getException();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Deletion Error");
+            alert.setHeaderText(null);
+            alert.setContentText("An error occurred during deletion:\n" + ex.getMessage());
+            alert.showAndWait();
         });
 
         new Thread(deleteTask).start();
-    }
-
-    private void showErrorAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-    private static class CleanupRow {
-        final CheckBox checkBox;
-        final CleanupItem item;
-
-        CleanupRow(CheckBox checkBox, CleanupItem item) {
-            this.checkBox = checkBox;
-            this.item = item;
-        }
-    }
-
-    private static class DeletionResult {
-        final long freedBytes;
-        final int failedCount;
-
-        DeletionResult(long freedBytes, int failedCount) {
-            this.freedBytes = freedBytes;
-            this.failedCount = failedCount;
-        }
     }
 }

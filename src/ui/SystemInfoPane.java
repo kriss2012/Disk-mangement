@@ -37,18 +37,14 @@ public class SystemInfoPane extends VBox {
         // Title
         Label title = new Label("System Information");
         title.setFont(Font.font("Outfit", FontWeight.BOLD, 26));
-        title.setTextFill(Color.WHITE);
+        title.getStyleClass().add("text-primary");
 
         // Grid of system specs
         GridPane specGrid = new GridPane();
         specGrid.setHgap(30);
         specGrid.setVgap(15);
-        specGrid.setPadding(new Insets(15));
-        specGrid.setStyle(
-            "-fx-background-color: #272730;" +
-            "-fx-background-radius: 12px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);"
-        );
+        specGrid.setPadding(new Insets(20));
+        specGrid.getStyleClass().add("glass-card");
 
         addSpecRow(specGrid, 0, "Operating System", osNameLbl);
         addSpecRow(specGrid, 1, "Architecture", osArchLbl);
@@ -59,25 +55,21 @@ public class SystemInfoPane extends VBox {
         // Memory card (macOS Activity Monitor Style)
         VBox memCard = new VBox(15);
         memCard.setPadding(new Insets(20));
-        memCard.setStyle(
-            "-fx-background-color: #272730;" +
-            "-fx-background-radius: 12px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);"
-        );
+        memCard.getStyleClass().add("glass-card");
 
         Label memTitle = new Label("JVM Memory Diagnostics");
         memTitle.setFont(Font.font("Outfit", FontWeight.BOLD, 16));
-        memTitle.setTextFill(Color.WHITE);
+        memTitle.getStyleClass().add("text-primary");
 
         HBox memProgressRow = new HBox(12);
         memProgressRow.setAlignment(Pos.CENTER_LEFT);
         
         memBar.setPrefWidth(300);
         memBar.setPrefHeight(16);
-        memBar.setStyle("-fx-accent: #007aff; -fx-control-inner-background: #1e1e24; -fx-background-insets: 0;");
+        memBar.setStyle("-fx-accent: #007aff;");
         
         memPercentLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 14));
-        memPercentLbl.setTextFill(Color.WHITE);
+        memPercentLbl.getStyleClass().add("text-primary");
         memProgressRow.getChildren().addAll(memBar, memPercentLbl);
 
         GridPane memGrid = new GridPane();
@@ -89,27 +81,7 @@ public class SystemInfoPane extends VBox {
 
         Button gcBtn = new Button("Run Garbage Collector");
         gcBtn.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 13));
-        gcBtn.setStyle(
-            "-fx-background-color: #3a3a3c;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 6px;" +
-            "-fx-padding: 8px 16px;" +
-            "-fx-cursor: hand;"
-        );
-        gcBtn.setOnMouseEntered(e -> gcBtn.setStyle(
-            "-fx-background-color: #4a4a4c;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 6px;" +
-            "-fx-padding: 8px 16px;" +
-            "-fx-cursor: hand;"
-        ));
-        gcBtn.setOnMouseExited(e -> gcBtn.setStyle(
-            "-fx-background-color: #3a3a3c;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 6px;" +
-            "-fx-padding: 8px 16px;" +
-            "-fx-cursor: hand;"
-        ));
+        gcBtn.getStyleClass().add("btn-secondary");
         gcBtn.setOnAction(e -> {
             System.gc();
             updateStats();
@@ -132,10 +104,10 @@ public class SystemInfoPane extends VBox {
     private void addSpecRow(GridPane grid, int row, String name, Label valLabel) {
         Label nameLabel = new Label(name);
         nameLabel.setFont(Font.font("Outfit", FontWeight.BOLD, 13));
-        nameLabel.setTextFill(Color.web("#a0a0a5"));
+        nameLabel.getStyleClass().add("text-secondary");
         
         valLabel.setFont(Font.font("Outfit", 13));
-        valLabel.setTextFill(Color.WHITE);
+        valLabel.getStyleClass().add("text-primary");
 
         grid.add(nameLabel, 0, row);
         grid.add(valLabel, 1, row);
@@ -167,11 +139,11 @@ public class SystemInfoPane extends VBox {
         
         // Dynamic coloring of bar based on JVM usage
         if (pct > 0.85) {
-            memBar.setStyle("-fx-accent: #ff3b30; -fx-control-inner-background: #1e1e24; -fx-background-insets: 0;");
+            memBar.setStyle("-fx-accent: #ff3b30;");
         } else if (pct > 0.60) {
-            memBar.setStyle("-fx-accent: #ff9500; -fx-control-inner-background: #1e1e24; -fx-background-insets: 0;");
+            memBar.setStyle("-fx-accent: #ff9500;");
         } else {
-            memBar.setStyle("-fx-accent: #007aff; -fx-control-inner-background: #1e1e24; -fx-background-insets: 0;");
+            memBar.setStyle("-fx-accent: #007aff;");
         }
     }
 

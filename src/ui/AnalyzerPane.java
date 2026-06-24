@@ -48,11 +48,11 @@ public class AnalyzerPane extends StackPane {
         
         Label msg = new Label("No Scan Data Available");
         msg.setFont(Font.font("Outfit", FontWeight.BOLD, 20));
-        msg.setTextFill(Color.WHITE);
+        msg.getStyleClass().add("text-primary");
 
         Label subMsg = new Label("Run a folder scan first under the 'Scanner' tab to view storage analysis.");
         subMsg.setFont(Font.font("Outfit", 14));
-        subMsg.setTextFill(Color.web("#a0a0a5"));
+        subMsg.getStyleClass().add("text-secondary");
 
         placeholder.getChildren().addAll(icon, msg, subMsg);
     }
@@ -67,55 +67,53 @@ public class AnalyzerPane extends StackPane {
 
         Label tableTitle = new Label("Extension Breakdown");
         tableTitle.setFont(Font.font("Outfit", FontWeight.BOLD, 20));
-        tableTitle.setTextFill(Color.WHITE);
+        tableTitle.getStyleClass().add("text-primary");
 
         setupTableView();
         leftPane.getChildren().addAll(tableTitle, tableView);
         VBox.setVgrow(tableView, Priority.ALWAYS);
 
-        // Right Pane: Summary Card
+        // Right Pane: Summary Card (Glass Card)
         VBox rightPane = new VBox(20);
         rightPane.setPrefWidth(300);
         rightPane.setMinWidth(280);
         rightPane.setPadding(new Insets(20));
-        rightPane.setStyle(
-            "-fx-background-color: #272730;" +
-            "-fx-background-radius: 12px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 4);"
-        );
+        rightPane.getStyleClass().add("glass-card");
 
         Label summaryTitle = new Label("Storage Stats");
         summaryTitle.setFont(Font.font("Outfit", FontWeight.BOLD, 18));
-        summaryTitle.setTextFill(Color.WHITE);
+        summaryTitle.getStyleClass().add("text-primary");
 
         // Total Size Stat
         VBox sizeStat = new VBox(4);
         Label totalSizeLbl = new Label("TOTAL SCANNED SIZE");
         totalSizeLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 11));
-        totalSizeLbl.setTextFill(Color.web("#a0a0a5"));
+        totalSizeLbl.getStyleClass().add("text-secondary");
+        
         totalSizeVal.setFont(Font.font("Outfit", FontWeight.BOLD, 22));
-        totalSizeVal.setTextFill(Color.web("#5856d6"));
+        totalSizeVal.getStyleClass().add("text-primary");
         sizeStat.getChildren().addAll(totalSizeLbl, totalSizeVal);
 
         // Unique Extensions Stat
         VBox typesStat = new VBox(4);
         Label uniqueTypesLbl = new Label("UNIQUE FILE TYPES");
         uniqueTypesLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 11));
-        uniqueTypesLbl.setTextFill(Color.web("#a0a0a5"));
+        uniqueTypesLbl.getStyleClass().add("text-secondary");
+        
         uniqueTypesVal.setFont(Font.font("Outfit", FontWeight.BOLD, 22));
-        uniqueTypesVal.setTextFill(Color.WHITE);
+        uniqueTypesVal.getStyleClass().add("text-primary");
         typesStat.getChildren().addAll(uniqueTypesLbl, uniqueTypesVal);
 
         // Divider line
         Region divider = new Region();
         divider.setPrefHeight(1);
-        divider.setStyle("-fx-background-color: #3a3a3c;");
+        divider.setStyle("-fx-background-color: -color-sidebar-border;");
 
         // Top Extensions list
         VBox topExtsBox = new VBox(10);
         Label topExtsLbl = new Label("TOP EXTENSIONS BY SIZE");
         topExtsLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 11));
-        topExtsLbl.setTextFill(Color.web("#a0a0a5"));
+        topExtsLbl.getStyleClass().add("text-secondary");
         topExtsBox.getChildren().addAll(topExtsLbl, topExtsList);
 
         rightPane.getChildren().addAll(summaryTitle, sizeStat, typesStat, divider, topExtsBox);
@@ -146,9 +144,9 @@ public class AnalyzerPane extends StackPane {
             {
                 container.setAlignment(Pos.CENTER_LEFT);
                 bar.setPrefWidth(80);
-                bar.setStyle("-fx-accent: #5856d6; -fx-control-inner-background: #1e1e24; -fx-background-insets: 0;");
+                bar.setStyle("-fx-accent: #007aff;");
                 label.setFont(Font.font("Outfit", 12));
-                label.setTextFill(Color.WHITE);
+                label.getStyleClass().add("text-primary");
                 container.getChildren().addAll(bar, label);
             }
 
@@ -169,17 +167,9 @@ public class AnalyzerPane extends StackPane {
         tableView.getColumns().addAll(extCol, sizeCol, countCol, pctCol);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        tableView.setStyle(
-            "-fx-background-color: #272730;" +
-            "-fx-control-inner-background: #272730;" +
-            "-fx-table-cell-border-color: #3a3a3c;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 8px;"
-        );
-
         tableView.setRowFactory(tv -> new TableRow<>() {
             {
-                setStyle("-fx-background-color: #272730; -fx-text-fill: white; -fx-border-color: transparent;");
+                setStyle("-fx-background-color: transparent; -fx-text-fill: -color-text-primary; -fx-border-color: transparent;");
             }
         });
     }
@@ -220,14 +210,14 @@ public class AnalyzerPane extends StackPane {
                 
                 Label nameLbl = new Label(ext);
                 nameLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 13));
-                nameLbl.setTextFill(Color.WHITE);
+                nameLbl.getStyleClass().add("text-primary");
                 
                 Region extSpacer = new Region();
                 HBox.setHgrow(extSpacer, Priority.ALWAYS);
                 
                 Label valLbl = new Label(DiskManager.formatSize(size));
                 valLbl.setFont(Font.font("Outfit", 13));
-                valLbl.setTextFill(Color.web("#a0a0a5"));
+                valLbl.getStyleClass().add("text-secondary");
                 
                 extRow.getChildren().addAll(nameLbl, extSpacer, valLbl);
                 topExtsList.getChildren().add(extRow);

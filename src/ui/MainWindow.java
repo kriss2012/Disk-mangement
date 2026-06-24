@@ -33,6 +33,7 @@ public class MainWindow extends Application {
     @Override
     public void start(Stage stage) {
         mainLayout = new BorderPane();
+        mainLayout.getStyleClass().addAll("root", "main-window-layout");
         
         // Load Stage Application Icon
         try {
@@ -58,6 +59,7 @@ public class MainWindow extends Application {
 
         // 3. Content Area
         contentArea = new StackPane();
+        contentArea.setStyle("-fx-background-color: transparent;");
         mainLayout.setCenter(contentArea);
 
         // Apply theme on load
@@ -81,6 +83,7 @@ public class MainWindow extends Application {
         VBox sb = new VBox(15);
         sb.setPrefWidth(240);
         sb.setPadding(new Insets(20, 15, 20, 15));
+        sb.getStyleClass().add("sidebar");
 
         // App/Profile Header with PNG Logo
         VBox appHeader = new VBox(10);
@@ -102,19 +105,15 @@ public class MainWindow extends Application {
             appLogo.setClip(clip);
         } catch (Exception e) {
             System.err.println("Could not load app logo image: " + e.getMessage());
-            // Fallback text if image load fails
-            Label appIconFallback = new Label("💽");
-            appIconFallback.setFont(Font.font(36));
-            appHeader.getChildren().add(appIconFallback);
         }
 
         Label appName = new Label("Disk Utility Pro");
         appName.setFont(Font.font("Outfit", FontWeight.BOLD, 18));
-        appName.setTextFill(Color.WHITE);
+        appName.getStyleClass().add("text-primary");
 
         Label appVersion = new Label("Version 1.2.0");
         appVersion.setFont(Font.font("Outfit", 11));
-        appVersion.setTextFill(Color.web("#a0a0a5"));
+        appVersion.getStyleClass().add("text-secondary");
 
         if (appLogo.getImage() != null) {
             appHeader.getChildren().add(appLogo);
@@ -125,14 +124,7 @@ public class MainWindow extends Application {
         TextField searchField = new TextField();
         searchField.setPromptText("Search settings...");
         searchField.setFont(Font.font("Outfit", 12));
-        searchField.setStyle(
-            "-fx-background-color: #1e1e24;" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 6px;" +
-            "-fx-padding: 6px 10px;" +
-            "-fx-border-color: #3a3a3c;" +
-            "-fx-border-radius: 6px;"
-        );
+        searchField.getStyleClass().add("text-field");
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterSidebar(newVal));
 
         // Sidebar Items (Fixed Emojis using safe UTF-16 characters without variation selectors)
@@ -159,7 +151,7 @@ public class MainWindow extends Application {
         footerBox.setAlignment(Pos.CENTER);
         Label footerText = new Label("Inspired by macOS Settings");
         footerText.setFont(Font.font("Outfit", 10));
-        footerText.setTextFill(Color.web("#666666"));
+        footerText.getStyleClass().add("text-secondary");
         footerBox.getChildren().add(footerText);
 
         sb.getChildren().addAll(appHeader, searchField, menuItemsContainer, spacer, footerBox);
@@ -175,39 +167,7 @@ public class MainWindow extends Application {
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setAlignment(Pos.CENTER_LEFT);
         btn.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 13));
-        
-        // Normal state
-        btn.setStyle(
-            "-fx-background-color: transparent;" +
-            "-fx-text-fill: #e1e1e4;" +
-            "-fx-background-radius: 6px;" +
-            "-fx-padding: 10px 14px;" +
-            "-fx-cursor: hand;"
-        );
-
-        btn.setOnMouseEntered(e -> {
-            if (btn != selectedMenuButton) {
-                btn.setStyle(
-                    "-fx-background-color: #323236;" +
-                    "-fx-text-fill: white;" +
-                    "-fx-background-radius: 6px;" +
-                    "-fx-padding: 10px 14px;" +
-                    "-fx-cursor: hand;"
-                );
-            }
-        });
-
-        btn.setOnMouseExited(e -> {
-            if (btn != selectedMenuButton) {
-                btn.setStyle(
-                    "-fx-background-color: transparent;" +
-                    "-fx-text-fill: #e1e1e4;" +
-                    "-fx-background-radius: 6px;" +
-                    "-fx-padding: 10px 14px;" +
-                    "-fx-cursor: hand;"
-                );
-            }
-        });
+        btn.getStyleClass().addAll("sidebar-button");
 
         btn.setOnAction(e -> {
             selectMenuButton(btn);
@@ -219,24 +179,10 @@ public class MainWindow extends Application {
 
     private void selectMenuButton(Button btn) {
         if (selectedMenuButton != null) {
-            // Restore previous button style
-            selectedMenuButton.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #e1e1e4;" +
-                "-fx-background-radius: 6px;" +
-                "-fx-padding: 10px 14px;" +
-                "-fx-cursor: hand;"
-            );
+            selectedMenuButton.getStyleClass().remove("selected");
         }
         selectedMenuButton = btn;
-        // Highlight active button
-        selectedMenuButton.setStyle(
-            "-fx-background-color: #007aff;" + // macOS Accent Blue
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 6px;" +
-            "-fx-padding: 10px 14px;" +
-            "-fx-cursor: hand;"
-        );
+        selectedMenuButton.getStyleClass().add("selected");
     }
 
     private void showPane(Pane pane) {
@@ -271,18 +217,15 @@ public class MainWindow extends Application {
     public void applyLiveTheme() {
         String theme = AppConfig.getTheme();
 
+        // Reset and apply style class to trigger CSS variable lookup
+        mainLayout.getStyleClass().setAll("root", "main-window-layout");
+
         if ("macOS Light".equals(theme)) {
-            mainLayout.setStyle("-fx-background-color: #f5f5f7;");
-            sidebar.setStyle("-fx-background-color: #e1e1e4; -fx-border-color: #d2d2d7; -fx-border-width: 0 1 0 0;");
-            contentArea.setStyle("-fx-background-color: #f5f5f7;");
+            mainLayout.getStyleClass().add("light-theme");
         } else if ("Cyberpunk".equals(theme)) {
-            mainLayout.setStyle("-fx-background-color: #0f0f13;");
-            sidebar.setStyle("-fx-background-color: #180828; -fx-border-color: #ff0055; -fx-border-width: 0 1 0 0;");
-            contentArea.setStyle("-fx-background-color: #0f0f13;");
-        } else { // macOS Dark (Default)
-            mainLayout.setStyle("-fx-background-color: #1e1e24;");
-            sidebar.setStyle("-fx-background-color: #252528; -fx-border-color: #323236; -fx-border-width: 0 1 0 0;");
-            contentArea.setStyle("-fx-background-color: #121214;");
+            mainLayout.getStyleClass().add("cyberpunk-theme");
+        } else {
+            // macOS Dark (Default, base variables in .root)
         }
 
         // Show dashboard page
