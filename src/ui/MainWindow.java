@@ -15,8 +15,17 @@ public class MainWindow extends Application {
         DashboardPane dashboardPane = new DashboardPane();
         Tab dashTab = new Tab("Dashboard", dashboardPane);
         
-        Tab scanTab = new Tab("Scanner", new Label("Scanner coming soon"));
-        Tab analyzeTab = new Tab("Analyzer", new Label("Analyzer coming soon"));
+        // Real Scanner tab
+        ScannerPane scannerPane = new ScannerPane();
+        Tab scanTab = new Tab("Scanner", scannerPane);
+        
+        // Real Analyzer tab
+        AnalyzerPane analyzerPane = new AnalyzerPane();
+        Tab analyzeTab = new Tab("Analyzer", analyzerPane);
+        
+        // Link Scanner to Analyzer for data handoff
+        scannerPane.setAnalyzerPane(analyzerPane);
+
         Tab cleanTab = new Tab("Cleanup", new Label("Cleanup coming soon"));
 
         tabPane.getTabs().addAll(dashTab, scanTab, analyzeTab, cleanTab);
