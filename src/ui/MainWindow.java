@@ -194,6 +194,9 @@ public class MainWindow extends Application {
     }
 
     private void showPane(Pane pane) {
+        if (pane != privateSafePane && privateSafePane != null) {
+            privateSafePane.lockSafe();
+        }
         contentArea.getChildren().clear();
         contentArea.getChildren().add(pane);
     }
