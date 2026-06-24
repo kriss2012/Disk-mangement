@@ -32,7 +32,7 @@ public class SystemInfoPane extends VBox {
     public SystemInfoPane() {
         this.setSpacing(20);
         this.setPadding(new Insets(25));
-        this.setStyle("-fx-background-color: #1e1e24;");
+        this.setStyle("-fx-background-color: transparent;");
 
         // Title
         Label title = new Label("System Information");
