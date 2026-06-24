@@ -17,26 +17,28 @@ public class SecureSafeService {
 
     public static boolean unlockSafe() {
         try {
-            // Execute the powershell script to trigger Windows Hello / credentials prompt
-            ProcessBuilder pb = new ProcessBuilder(
-                "powershell.exe", 
-                "-NoProfile",
-                "-ExecutionPolicy", "Bypass", 
-                "-File", "unlock_safe.ps1"
-            );
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-            
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            boolean success = false;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().equalsIgnoreCase("SUCCESS")) {
-                    success = true;
-                }
+            // Delete previous auth file to prevent stale status grants
+            File authFile = new File(VAULT_DIR, "auth_status.txt");
+            if (authFile.exists()) {
+                authFile.delete();
             }
-            process.waitFor();
-            return success;
+
+            // Launch powershell in a new interactive console window so that Windows Hello biometric prompts work correctly
+            ProcessBuilder pb = new ProcessBuilder(
+                "cmd.exe", "/c", 
+                "start /wait powershell.exe -NoProfile -ExecutionPolicy Bypass -File unlock_safe.ps1"
+            );
+            Process process = pb.start();
+            process.waitFor(); // Wait for the terminal window to close
+
+            // Read the authentication outcome written by the script
+            if (authFile.exists()) {
+                byte[] bytes = Files.readAllBytes(authFile.toPath());
+                String status = new String(bytes).trim();
+                authFile.delete(); // Delete file after consumption
+                return "SUCCESS".equalsIgnoreCase(status);
+            }
+            return false;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -165,7 +167,6 @@ public class SecureSafeService {
     }
 
     private static String protectKeyWithDPAPI(String base64Key) throws Exception {
-        // Explicitly load System.Security assembly to make ProtectedData available in PowerShell sessions
         String script = String.format(
             "Add-Type -AssemblyName System.Security; " +
             "[System.Convert]::ToBase64String([System.Security.Cryptography.ProtectedData]::Protect([System.Convert]::FromBase64String('%s'), $null, 'CurrentUser'))",
@@ -175,7 +176,6 @@ public class SecureSafeService {
     }
 
     private static String unprotectKeyWithDPAPI(String protectedBase64Key) throws Exception {
-        // Explicitly load System.Security assembly to make ProtectedData available in PowerShell sessions
         String script = String.format(
             "Add-Type -AssemblyName System.Security; " +
             "[System.Convert]::ToBase64String([System.Security.Cryptography.ProtectedData]::Unprotect([System.Convert]::FromBase64String('%s'), $null, 'CurrentUser'))",
