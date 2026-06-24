@@ -45,7 +45,7 @@ public class MainWindow extends Application {
         }
 
         // 1. Initialize Panes
-        dashboardPane = new DashboardPane();
+        dashboardPane = new DashboardPane(this);
         scannerPane = new ScannerPane();
         analyzerPane = new AnalyzerPane();
         cleanupPane = new CleanupPane();
@@ -238,5 +238,23 @@ public class MainWindow extends Application {
 
         // Show dashboard page
         showPane(dashboardPane);
+    }
+
+    // Redirect to File Manager and open a specific path
+    public void showFileManagerAndOpenPath(String path) {
+        if (fileManagerPane != null) {
+            fileManagerPane.loadDirectory(new java.io.File(path));
+            // Find and highlight the File Manager sidebar button
+            for (javafx.scene.Node node : menuItemsContainer.getChildren()) {
+                if (node instanceof Button) {
+                    Button btn = (Button) node;
+                    if (btn.getText().contains("File Manager")) {
+                        selectMenuButton(btn);
+                        break;
+                    }
+                }
+            }
+            showPane(fileManagerPane);
+        }
     }
 }
