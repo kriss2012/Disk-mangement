@@ -15,33 +15,49 @@ import model.SafeItem;
 public class SecureSafeService {
     private static final String VAULT_DIR = ".private_safe";
 
-    public static boolean unlockSafe() {
+    public static boolean isSafeInitialized() {
+        return new File(VAULT_DIR, "safe.pass").exists();
+    }
+
+    public static void initializeSafe(String password) throws Exception {
+        File vaultFolder = new File(VAULT_DIR);
+        if (!vaultFolder.exists()) {
+            vaultFolder.mkdirs();
+        }
+        String protectedPass = protectData(password);
+        Files.write(Paths.get(VAULT_DIR, "safe.pass"), protectedPass.getBytes("UTF-8"));
+    }
+
+    public static boolean verifySafePassword(String password) {
         try {
-            // Delete previous auth file to prevent stale status grants
-            File authFile = new File(VAULT_DIR, "auth_status.txt");
-            if (authFile.exists()) {
-                authFile.delete();
-            }
-
-            // Launch powershell in a new interactive console window so that Windows Hello biometric prompts work correctly
-            ProcessBuilder pb = new ProcessBuilder(
-                "cmd.exe", "/c", 
-                "start /wait powershell.exe -NoProfile -ExecutionPolicy Bypass -File unlock_safe.ps1"
-            );
-            Process process = pb.start();
-            process.waitFor(); // Wait for the terminal window to close
-
-            // Read the authentication outcome written by the script
-            if (authFile.exists()) {
-                byte[] bytes = Files.readAllBytes(authFile.toPath());
-                String status = new String(bytes).trim();
-                authFile.delete(); // Delete file after consumption
-                return "SUCCESS".equalsIgnoreCase(status);
-            }
-            return false;
+            File passFile = new File(VAULT_DIR, "safe.pass");
+            if (!passFile.exists()) return false;
+            String protectedPass = new String(Files.readAllBytes(passFile.toPath()), "UTF-8").trim();
+            String decryptedPass = unprotectData(protectedPass);
+            return password.equals(decryptedPass);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public static void changeSafePassword(String oldPassword, String newPassword) throws Exception {
+        if (!verifySafePassword(oldPassword)) {
+            throw new IllegalArgumentException("Incorrect current password.");
+        }
+        initializeSafe(newPassword);
+    }
+
+    public static void resetSafe() {
+        File vaultFolder = new File(VAULT_DIR);
+        if (vaultFolder.exists() && vaultFolder.isDirectory()) {
+            File[] files = vaultFolder.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    f.delete();
+                }
+            }
+            vaultFolder.delete();
         }
     }
 
@@ -57,8 +73,8 @@ public class SecureSafeService {
         byte[] rawKey = aesKey.getEncoded();
         String base64Key = Base64.getEncoder().encodeToString(rawKey);
 
-        // 2. Encrypt the key with Windows Data Protection API (DPAPI)
-        String protectedKey = protectKeyWithDPAPI(base64Key);
+        // 2. Encrypt the key with Windows DPAPI
+        String protectedKey = protectData(base64Key);
 
         // 3. Encrypt the file data using AES
         Cipher cipher = Cipher.getInstance("AES");
@@ -111,7 +127,7 @@ public class SecureSafeService {
         String protectedKey = props.getProperty("protectedKey");
 
         // 2. Decrypt the key using Windows DPAPI
-        String base64Key = unprotectKeyWithDPAPI(protectedKey);
+        String base64Key = unprotectData(protectedKey);
         byte[] rawKey = Base64.getDecoder().decode(base64Key);
         SecretKeySpec aesKeySpec = new SecretKeySpec(rawKey, "AES");
 
@@ -166,22 +182,24 @@ public class SecureSafeService {
         return items;
     }
 
-    private static String protectKeyWithDPAPI(String base64Key) throws Exception {
+    public static String protectData(String plainText) throws Exception {
+        String base64Input = Base64.getEncoder().encodeToString(plainText.getBytes("UTF-8"));
         String script = String.format(
             "Add-Type -AssemblyName System.Security; " +
             "[System.Convert]::ToBase64String([System.Security.Cryptography.ProtectedData]::Protect([System.Convert]::FromBase64String('%s'), $null, 'CurrentUser'))",
-            base64Key
+            base64Input
         );
         return runPowerShellCommand(script);
     }
 
-    private static String unprotectKeyWithDPAPI(String protectedBase64Key) throws Exception {
+    public static String unprotectData(String protectedBase64) throws Exception {
         String script = String.format(
             "Add-Type -AssemblyName System.Security; " +
             "[System.Convert]::ToBase64String([System.Security.Cryptography.ProtectedData]::Unprotect([System.Convert]::FromBase64String('%s'), $null, 'CurrentUser'))",
-            protectedBase64Key
+            protectedBase64
         );
-        return runPowerShellCommand(script);
+        String base64Output = runPowerShellCommand(script);
+        return new String(Base64.getDecoder().decode(base64Output), "UTF-8");
     }
 
     private static String runPowerShellCommand(String scriptCommand) throws Exception {
@@ -211,7 +229,7 @@ public class SecureSafeService {
         }
         
         String details = errorMsg.toString().trim();
-        throw new IOException("DPAPI key protection failed via PowerShell. Exit code: " + exitCode + 
+        throw new IOException("DPAPI operation failed via PowerShell. Exit code: " + exitCode + 
                              (details.isEmpty() ? "" : "\nDetails: " + details));
     }
 }
