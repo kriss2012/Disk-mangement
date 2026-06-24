@@ -30,7 +30,7 @@ public class ScannerPane extends VBox {
     public ScannerPane() {
         this.setSpacing(15);
         this.setPadding(new Insets(25));
-        this.setStyle("-fx-background-color: #1e1e24;");
+        this.setStyle("-fx-background-color: transparent;");
 
         // Title
         Label title = new Label("Folder Scanner");
@@ -41,6 +41,7 @@ public class ScannerPane extends VBox {
         HBox inputRow = new HBox(10);
         inputRow.setAlignment(Pos.CENTER_LEFT);
 
+        pathField.setText(services.AppConfig.getDefaultScanDir());
         pathField.setPromptText("Enter or select a folder path to scan...");
         pathField.setFont(Font.font("Outfit", 14));
         pathField.setStyle(
