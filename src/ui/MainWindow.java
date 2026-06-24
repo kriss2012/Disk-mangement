@@ -5,6 +5,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -32,6 +34,13 @@ public class MainWindow extends Application {
     public void start(Stage stage) {
         mainLayout = new BorderPane();
         
+        // Load Stage Application Icon
+        try {
+            stage.getIcons().add(new Image("file:logo.png"));
+        } catch (Exception e) {
+            System.err.println("Could not load stage window icon: " + e.getMessage());
+        }
+
         // 1. Initialize Panes
         dashboardPane = new DashboardPane();
         scannerPane = new ScannerPane();
@@ -55,6 +64,14 @@ public class MainWindow extends Application {
         applyLiveTheme();
 
         Scene scene = new Scene(mainLayout, 1020, 680);
+        
+        // Link CSS stylesheet
+        try {
+            scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        } catch (Exception e) {
+            System.err.println("Could not load style.css stylesheet: " + e.getMessage());
+        }
+
         stage.setScene(scene);
         stage.setTitle("Disk Utility Pro");
         stage.show();
@@ -65,13 +82,31 @@ public class MainWindow extends Application {
         sb.setPrefWidth(240);
         sb.setPadding(new Insets(20, 15, 20, 15));
 
-        // App/Profile Header
-        VBox appHeader = new VBox(5);
+        // App/Profile Header with PNG Logo
+        VBox appHeader = new VBox(10);
         appHeader.setAlignment(Pos.CENTER);
         appHeader.setPadding(new Insets(0, 0, 10, 0));
 
-        Label appIcon = new Label("💽");
-        appIcon.setFont(Font.font(42));
+        ImageView appLogo = new ImageView();
+        try {
+            Image img = new Image("file:logo.png");
+            appLogo.setImage(img);
+            appLogo.setFitWidth(64);
+            appLogo.setFitHeight(64);
+            appLogo.setPreserveRatio(true);
+
+            // Clip logo image to clean rounded corners (macOS style)
+            javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(64, 64);
+            clip.setArcWidth(16);
+            clip.setArcHeight(16);
+            appLogo.setClip(clip);
+        } catch (Exception e) {
+            System.err.println("Could not load app logo image: " + e.getMessage());
+            // Fallback text if image load fails
+            Label appIconFallback = new Label("💽");
+            appIconFallback.setFont(Font.font(36));
+            appHeader.getChildren().add(appIconFallback);
+        }
 
         Label appName = new Label("Disk Utility Pro");
         appName.setFont(Font.font("Outfit", FontWeight.BOLD, 18));
@@ -81,7 +116,10 @@ public class MainWindow extends Application {
         appVersion.setFont(Font.font("Outfit", 11));
         appVersion.setTextFill(Color.web("#a0a0a5"));
 
-        appHeader.getChildren().addAll(appIcon, appName, appVersion);
+        if (appLogo.getImage() != null) {
+            appHeader.getChildren().add(appLogo);
+        }
+        appHeader.getChildren().addAll(appName, appVersion);
 
         // Sidebar Search
         TextField searchField = new TextField();
@@ -97,15 +135,15 @@ public class MainWindow extends Application {
         );
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterSidebar(newVal));
 
-        // Sidebar Items
+        // Sidebar Items (Fixed Emojis using safe UTF-16 characters without variation selectors)
         menuItemsContainer = new VBox(4);
         
-        Button dashBtn = createMenuButton("🖥️  Dashboard", () -> showPane(dashboardPane));
-        Button scanBtn = createMenuButton("🔍  Folder Scanner", () -> showPane(scannerPane));
-        Button analyzeBtn = createMenuButton("📈  Storage Analyzer", () -> showPane(analyzerPane));
-        Button cleanBtn = createMenuButton("🧹  Junk Cleanup", () -> showPane(cleanupPane));
-        Button sysInfoBtn = createMenuButton("ℹ️  System Info", () -> showPane(systemInfoPane));
-        Button prefBtn = createMenuButton("⚙️  Preferences", () -> showPane(preferencesPane));
+        Button dashBtn = createMenuButton("\uD83D\uDDA5  Dashboard", () -> showPane(dashboardPane));
+        Button scanBtn = createMenuButton("\uD83D\uDD0D  Folder Scanner", () -> showPane(scannerPane));
+        Button analyzeBtn = createMenuButton("\uD83D\uDCC8  Storage Analyzer", () -> showPane(analyzerPane));
+        Button cleanBtn = createMenuButton("\uD83D\uDDD1  Junk Cleanup", () -> showPane(cleanupPane));
+        Button sysInfoBtn = createMenuButton("\uD83D\uDCBB  System Info", () -> showPane(systemInfoPane));
+        Button prefBtn = createMenuButton("\u2699  Preferences", () -> showPane(preferencesPane));
 
         menuItemsContainer.getChildren().addAll(
             dashBtn, scanBtn, analyzeBtn, cleanBtn, 
@@ -233,31 +271,15 @@ public class MainWindow extends Application {
     public void applyLiveTheme() {
         String theme = AppConfig.getTheme();
 
-        String mainBg;
-        String sidebarBg;
-        String sidebarBorder;
-
         if ("macOS Light".equals(theme)) {
-            mainBg = "#f5f5f7";
-            sidebarBg = "#e1e1e4";
-            sidebarBorder = "#d2d2d7";
-            
             mainLayout.setStyle("-fx-background-color: #f5f5f7;");
             sidebar.setStyle("-fx-background-color: #e1e1e4; -fx-border-color: #d2d2d7; -fx-border-width: 0 1 0 0;");
             contentArea.setStyle("-fx-background-color: #f5f5f7;");
         } else if ("Cyberpunk".equals(theme)) {
-            mainBg = "#0f0f13";
-            sidebarBg = "#180828";
-            sidebarBorder = "#ff0055";
-            
             mainLayout.setStyle("-fx-background-color: #0f0f13;");
             sidebar.setStyle("-fx-background-color: #180828; -fx-border-color: #ff0055; -fx-border-width: 0 1 0 0;");
             contentArea.setStyle("-fx-background-color: #0f0f13;");
         } else { // macOS Dark (Default)
-            mainBg = "#1e1e24";
-            sidebarBg = "#252528";
-            sidebarBorder = "#323236";
-            
             mainLayout.setStyle("-fx-background-color: #1e1e24;");
             sidebar.setStyle("-fx-background-color: #252528; -fx-border-color: #323236; -fx-border-width: 0 1 0 0;");
             contentArea.setStyle("-fx-background-color: #121214;");
