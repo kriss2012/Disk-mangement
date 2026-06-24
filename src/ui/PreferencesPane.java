@@ -23,7 +23,7 @@ public class PreferencesPane extends VBox {
         this.mainWindow = mainWindow;
         this.setSpacing(20);
         this.setPadding(new Insets(25));
-        this.setStyle("-fx-background-color: #1e1e24;");
+        this.setStyle("-fx-background-color: transparent;");
 
         // Title
         Label title = new Label("Preferences");
