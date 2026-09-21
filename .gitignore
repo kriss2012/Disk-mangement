@@ -4,3 +4,18 @@ out/
 *.log
 *.tmp
 javafx-sdk-21.0.2/
+
+# Standards & hygiene
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+dist/
+build/
+target/
+.gradle/
+build/
